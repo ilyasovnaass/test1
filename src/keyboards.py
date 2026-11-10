@@ -16,5 +16,5 @@ inline_buttons = InlineKeyboardMarkup(inline_keyboard=[
 
 
 repeat_button = InlineKeyboardMarkup(inline_keyboard=[
-    [KeyboardButton(text='Сыграть снова', callback_data='quiz_start')]
+    [InlineKeyboardButton(text='Сыграть снова', callback_data='quiz_start')]
 ])

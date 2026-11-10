@@ -1,6 +1,6 @@
 from aiogram import F, Router
-from aiogram.types import Message
-from aiogram.filters import CommandStart, Command, CallbackQuery
+from aiogram.types import Message, CallbackQuery
+from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 
 from src.state import Quiz
@@ -21,9 +21,9 @@ async def cmd_start(message: Message):
 @router.message(Command('help'))
 async def help(message: Message):
     await message.answer(
-        '/start - команда для запуска\n'
-        '/help - список комманд'
-        reply_markup=inline_buttons)
+        '/start - команда для запуска\n',
+        '/help - список комманд',
+        reply_markup=repeat_button)
     
 
 @router.message(F.text.lower() == 'группа')
@@ -50,7 +50,7 @@ async def handle_answer(message: Message, state: FSMContext):
         score += 1
         await message.answer('Правильно! +1')
     else:
-        await message.answer('Неверно! Правильный ответ: {QUESTIONS[index]['a']}')
+        await message.answer('Неверно! Правильный ответ: {QUESTIONS[index]["a"]}')
 
     index += 1
     if index >= len(QUESTIONS):

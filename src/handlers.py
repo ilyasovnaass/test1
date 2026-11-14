@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from src.state import Quiz
 from src.questions import QUESTIONS
-from src.keyboards import reply_buttons, inline_buttons, repeat_button
+from src.keyboards import reply_buttons, inline_buttons, repeat_buttons
 
 
 router = Router()
@@ -21,9 +21,9 @@ async def cmd_start(message: Message):
 @router.message(Command('help'))
 async def help(message: Message):
     await message.answer(
-        '/start - команда для запуска\n',
-        '/help - список комманд',
-        reply_markup=repeat_button)
+        '/start - команда для запуска\n/help - список комманд',
+        reply_markup=inline_buttons
+        )
     
 
 @router.message(F.text.lower() == 'группа')
@@ -37,29 +37,41 @@ async def quiz_start(callback: CallbackQuery, state: FSMContext):
     await callback.answer('Начинаем игру!', show_alert=True)
     await state.update_data(index=0, score=0)   # сохраняем прогресс
     await state.set_state(Quiz.waiting_answer)  # переводим в состояние
-    await callback.message.answer(f'Вопрос 1: (QUESTIONS[0])')
+    await callback.message.answer(f'Вопрос 1: {QUESTIONS[0]['q']}')
 
 
 @router.message(Quiz.waiting_answer)
 async def handle_answer(message: Message, state: FSMContext):
-    data = await state.get_data
+    data = await state.get_data()
     index = data['index']
     score = data['score']
 
-    if message.text.lower() == QUESTIONS[index]:
+
+    if message.text.lower() == QUESTIONS[index]['a'].lower():
         score += 1
         await message.answer('Правильно! +1')
     else:
-        await message.answer('Неверно! Правильный ответ: {QUESTIONS[index]["a"]}')
+        await message.answer(f'Неверно! Правильный ответ: {QUESTIONS[index]["a"]}')
 
     index += 1
+    
     if index >= len(QUESTIONS):
-        await message.answer(f'Конец! Счет: {score}/len(QUESTIONS)')
-        reply_buttons=repeat_button()
+        await message.answer(
+            f'Конец! Счет: {score}/{len(QUESTIONS)}',
+            reply_markup=repeat_buttons
+            ),
         await state.clear()
     else:
         await state.update_data(index=index, score=score)
         await message.answer(f'Вопрос {index + 1}: {QUESTIONS[index]['q']}')
+
+
+@router.callback_query(F.data == 'repeat')
+async def repeat(callback: CallbackQuery, state: FSMContext):
+    await callback.answer('Начинаем заново!', show_alert=True)
+    await state.update_data(index=0, score=0)
+    await state.set_state(Quiz.waiting_answer)
+    await callback.message.answer(f'Вопрос 1: {QUESTIONS[0]['q']}')
 
 # @dp.message(F.from_user.id == 5667531193)
 # async def user(message: Message):

@@ -3,6 +3,8 @@ from aiogram.types import (ReplyKeyboardMarkup,
                            InlineKeyboardMarkup,
                            InlineKeyboardButton)
 
+
+
 reply_buttons = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='Корзина')],
     [KeyboardButton(text='Каталог'), KeyboardButton(text='Контакты')]
@@ -15,6 +17,6 @@ inline_buttons = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 
-repeat_button = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Сыграть снова', callback_data='quiz_start')]
+repeat_buttons = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Сыграть снова', callback_data='repeat')],
 ])

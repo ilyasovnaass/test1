@@ -59,10 +59,25 @@ GET_USER_BY_TG_ID = 'SELECT * FROM users WHERE telegram_id = ?'    # наход�
 
 INSERT_USER = 'INSERT OR IGNORE INTO users (telegram_id, username) VALUES (?, ?)'   # добавляет нового пользователя в таблицу
 
+# -- Домашка --
+
 #3 Update (ключевое слово - UPDATE): 
 
-UPDATE_USER_USERNAME = ''   # меняет данные существуещего пользователя, например его ник
+UPDATE_USER_USERNAME = 'UPDATE users SET username = ? WHERE telegram_id = ?'   # меняет данные существуещего пользователя, например его ник
 
 #4 Delete (ключевое слово DELETE):
 
-DELETE_USER = ''    # удаляет запись пользователя из базы
+DELETE_USER = 'DELETE FROM users WHERE telegram_id = ?'    # удаляет запись пользователя из базы
+
+
+
+# --QUESTIONS--
+
+GET_ALL_QUESTIONS = 'SELECT * FROM questions'
+
+GET_QUESTION_BY_ID = 'SELECT FROM * questions WHERE id = ?'
+
+
+# -- Домашка --
+
+INSERT_QUESTION = ''

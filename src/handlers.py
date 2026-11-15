@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from src.state import Quiz
 from src.questions import QUESTIONS
 from src.keyboards import reply_buttons, inline_buttons, repeat_buttons
-from db.users import get_user, create_user
+from db.users import get_user, create_user, update_user, delete_user
 
 
 router = Router()
@@ -78,6 +78,18 @@ async def repeat(callback: CallbackQuery, state: FSMContext):
     await state.update_data(index=0, score=0)
     await state.set_state(Quiz.waiting_answer)
     await callback.message.answer(f'Вопрос 1: {QUESTIONS[0]['q']}')
+
+
+@router.message(Command('update'))
+async def update(message: Message):
+    update_user(message.from_user.id, 'new_username')
+    await message.answer('Имя обновлено!')
+
+
+@router.message(Command('delete'))
+async def delete(message: Message):
+    delete_user(message.from_user.id)
+    await message.answer('Вы удалены из базы данных!')
 
 
 # @dp.message(F.from_user.id == 5667531193)

@@ -6,17 +6,22 @@ from aiogram.fsm.context import FSMContext
 from src.state import Quiz
 from src.questions import QUESTIONS
 from src.keyboards import reply_buttons, inline_buttons, repeat_buttons
+from db.users import get_user, create_user
 
 
 router = Router()
 
+
 @router.message(CommandStart())
 async def cmd_start(message: Message):
+    user = create_user(telegram_id=message.from_user.id, 
+                       username=message.from_user.username or 'Аноним')
     await message.answer(
-        f'Привет {message.from_user.full_name}, я твой бот!',
+        f'Привет {message.from_user.full_name}, я твой бот!\nВот твой резульатат который возвращается с SQL: \n{user}',
         reply_markup=reply_buttons
     )
     print(f'Пользователь {message.from_user.full_name} написал команду start.')
+
 
 @router.message(Command('help'))
 async def help(message: Message):
@@ -31,6 +36,7 @@ async def group(message: Message):
     await message.answer(
         'Твоя группа 71-1!'
     )
+
 
 @router.callback_query(F.data == 'quiz_start')
 async def quiz_start(callback: CallbackQuery, state: FSMContext):
@@ -73,11 +79,13 @@ async def repeat(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Quiz.waiting_answer)
     await callback.message.answer(f'Вопрос 1: {QUESTIONS[0]['q']}')
 
+
 # @dp.message(F.from_user.id == 5667531193)
 # async def user(message: Message):
 #     await message.answer(
 #         'Привет мой создатель!'
 #     )
+
 
 # Домашка:
 
@@ -87,6 +95,7 @@ async def about(message: Message):
         'Я бот-ассистент группы 71-1.\n' \
         'Я умею отвечать на комманды и реагировать на слова.'
     )
+
 
 @router.message(F.text.lower() == 'пока')
 async def echo(message: Message):

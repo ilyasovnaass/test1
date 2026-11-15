@@ -40,12 +40,13 @@ import logging  # Логи - это информация о работе про�
 from aiogram import Bot, Dispatcher     # Мы импортируем два основных класса из библиотеки aiogram
 from src.handlers import router     # импортируем роутер из файла handlers.py, который находится внутри папки src
 from aiogram.fsm.storage.memory import MemoryStorage    # MemoryStorage -- это хранилище данных в оперативной памяти
-
+from db.database import init_db
+from config import BOT_TOKEN
 
 # FSM(FiniteStateMachine) -- конечный автомат состояний. Он позволяет боту запоминать, на каком этапе диалога находится пользователь
 
 
-BOT_TOKEN = '8676423397:AAHVTJFVWoAYIrDPgbIcW-pEGti5lBn8i3M'
+
 
 
 bot = Bot(token=BOT_TOKEN)  # Мы создаем экземпляр класса Bot(), сохраняем созданный объект в переменную и через нее мы можем управлять ботом
@@ -53,6 +54,7 @@ dp = Dispatcher(storage=MemoryStorage())    # Через диспетчер мы
 
 
 async def main():   # main -- это общепринятое название главной функции программы
+    init_db()
     dp.include_router(router)   # Подключаем наш роутер к диспетчеру
     await dp.start_polling(bot)     # отправляет запросы на тг-сервер, также это команда для запуска бота
 

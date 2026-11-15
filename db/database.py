@@ -1,22 +1,25 @@
-import sqlite3
+import sqlite3  
 
-from db.queries import CREATE_USERS_TABLE, CREATE_QUESTIONS_TABLE, CREATE_RESULTS_TABLE
+from db.queries import CREATE_USERS_TABLE, CREATE_QUESTIONS_TABLE, CREATE_RESULTS_TABLE 
+from config import DATABASE
 
-
-DATABASE = 'db/quiz.db'
-
-
-def get_db():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row      
-    return conn
+# импортируем из папки db и из его файла queries.py SQL-запросы на создание таблиц 
 
 
-def init_db():
+
+def get_db():   # это функция, которая отвечает за подключение к базе данных
+    conn = sqlite3.connect(DATABASE)    # в переменной conn  хранится объект подключения, sqlite3.connect(DATABASE) -- sqlite3 соединяется с базой данных
+    conn.row_factory = sqlite3.Row      # обычный результат sqlite возвращает в виде кортежа (1, 'Амина', 19) и  
+                                        # чтобы вывести результат пришлось бы обращаться к кортежу по индексу, но если данных много это метод вызывает неудобства
+                                        # но благодаря row можно обращаться к данным по названиям столбцов (колонок)
+    return conn     # возвращает объект подключения
+
+
+def init_db():   # эта функция отвечает за инициализацию базы данных, тоесть создание необходимых таблиц
     conn = get_db()
-    conn.execute(CREATE_USERS_TABLE)
+    conn.execute(CREATE_USERS_TABLE)    # через метод execute() в sqlite создаются таблицы
     conn.execute(CREATE_QUESTIONS_TABLE)
     conn.execute(CREATE_RESULTS_TABLE)
-    conn.commit()
-    conn.close()
+    conn.commit()   # commit -- сохраняет результат в базе данных
+    conn.close()    # закрывет соединение с базой данных
 

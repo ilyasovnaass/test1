@@ -2,6 +2,9 @@ import sqlite3
 
 from db.queries import CREATE_USERS_TABLE, CREATE_QUESTIONS_TABLE, CREATE_RESULTS_TABLE 
 from config import DATABASE
+from db.queries import GET_ALL_QUESTIONS, INSERT_QUESTION
+from src.questions import QUESTIONS
+
 
 # импортируем из папки db и из его файла queries.py SQL-запросы на создание таблиц 
 
@@ -20,6 +23,13 @@ def init_db():   # эта функция отвечает за инициали�
     conn.execute(CREATE_USERS_TABLE)    # через метод execute() в sqlite создаются таблицы
     conn.execute(CREATE_QUESTIONS_TABLE)
     conn.execute(CREATE_RESULTS_TABLE)
+
+    # заполняем вопросы если таблица пустая
+    
+    if not conn.execute(GET_ALL_QUESTIONS).fetchall():
+        for q_text, q_answer in QUESTIONS:
+            conn.execute(INSERT_QUESTION, (q_text, q_answer))
+
     conn.commit()   # commit -- сохраняет результат в базе данных
     conn.close()    # закрывет соединение с базой данных
 

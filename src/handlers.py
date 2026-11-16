@@ -3,13 +3,17 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 
-from src.state import Quiz
+from src.state import Quiz, AddQuestion, DeleteQuestion
 from src.questions import QUESTIONS
 from src.keyboards import reply_buttons, inline_buttons, repeat_buttons
 from db.users import get_user, create_user, update_user, delete_user
+from db.questions import get_all_questions, create_question, delete_question
+from db.results import save_result
+
 
 
 router = Router()
+
 
 
 @router.message(CommandStart())
@@ -23,12 +27,14 @@ async def cmd_start(message: Message):
     print(f'Пользователь {message.from_user.full_name} написал команду start.')
 
 
+
 @router.message(Command('help'))
 async def help(message: Message):
     await message.answer(
         '/start - команда для запуска\n/help - список комманд',
         reply_markup=inline_buttons
         )
+
     
 
 @router.message(F.text.lower() == 'группа')
@@ -38,12 +44,18 @@ async def group(message: Message):
     )
 
 
+
 @router.callback_query(F.data == 'quiz_start')
 async def quiz_start(callback: CallbackQuery, state: FSMContext):
     await callback.answer('Начинаем игру!', show_alert=True)
-    await state.update_data(index=0, score=0)   # сохраняем прогресс
+    questions = get_all_questions()
+    if not questions:
+        await callback.message.answer('Вопросов нет в базе!')
+
+    await state.update_data(questions=questions, index=0, score=0)   # сохраняем прогресс
     await state.set_state(Quiz.waiting_answer)  # переводим в состояние
-    await callback.message.answer(f'Вопрос 1: {QUESTIONS[0]['q']}')
+    await callback.message.answer(f'Вопрос 1: {questions[0]['question_text']}')
+
 
 
 @router.message(Quiz.waiting_answer)
@@ -51,33 +63,47 @@ async def handle_answer(message: Message, state: FSMContext):
     data = await state.get_data()
     index = data['index']
     score = data['score']
+    questions = data['questions']
+    user = get_user(telegram_id=message.from_user.id)
+    q = questions[index]
 
-
-    if message.text.lower() == QUESTIONS[index]['a'].lower():
+    is_correct = message.text.lower() == q['correct_answer']
+    save_result(
+        user_id=user['id'],
+        question_id=q['id'],
+        is_correct=is_correct
+    )
+        
+    
+    if is_correct:
         score += 1
         await message.answer('Правильно! +1')
+        
     else:
-        await message.answer(f'Неверно! Правильный ответ: {QUESTIONS[index]["a"]}')
+        await message.answer(f'Неверно! Правильный ответ: {q['correct_answer']}')
 
     index += 1
     
-    if index >= len(QUESTIONS):
+    if index >= len(questions):
         await message.answer(
-            f'Конец! Счет: {score}/{len(QUESTIONS)}',
+            f'Конец! Счет: {score}/{len(questions)}',
             reply_markup=repeat_buttons
             ),
         await state.clear()
     else:
         await state.update_data(index=index, score=score)
-        await message.answer(f'Вопрос {index + 1}: {QUESTIONS[index]['q']}')
+        await message.answer(f'Вопрос {index + 1}: {questions[index]['question_text']}')
+
 
 
 @router.callback_query(F.data == 'repeat')
 async def repeat(callback: CallbackQuery, state: FSMContext):
     await callback.answer('Начинаем заново!', show_alert=True)
-    await state.update_data(index=0, score=0)
+    questions = get_all_questions()
+    await state.update_data(questions=questions,index=0, score=0)
     await state.set_state(Quiz.waiting_answer)
-    await callback.message.answer(f'Вопрос 1: {QUESTIONS[0]['q']}')
+    await callback.message.answer(f'Вопрос 1: {questions[0]['question_text']}')
+
 
 
 @router.message(Command('update'))
@@ -86,10 +112,36 @@ async def update(message: Message):
     await message.answer('Имя обновлено!')
 
 
+
 @router.message(Command('delete'))
 async def delete(message: Message):
     delete_user(message.from_user.id)
     await message.answer('Вы удалены из базы данных!')
+
+
+
+@router.message(Command('add_question'))
+async def add_question(message: Message, state: FSMContext):
+    await state.set_state(AddQuestion.question)
+    await message.answer('Напишите свой вопрос:')
+
+
+
+@router.message(AddQuestion.question)
+async def get_question(message: Message, state: FSMContext):
+    await state.update_data(question=message.text)
+    await state.set_state(AddQuestion.correct_answer)
+    await message.answer('Введите правильный ответ на свой вопрос:')
+    
+
+
+@router.message(AddQuestion.correct_answer) 
+async def add_question_finish(message: Message, state: FSMContext): 
+    data = await state.get_data() 
+    create_question(data['question'], message.text) 
+    await message.answer("Вопрос добавлен!") 
+    await state.clear()
+
 
 
 # @dp.message(F.from_user.id == 5667531193)
@@ -99,7 +151,9 @@ async def delete(message: Message):
 #     )
 
 
+
 # Домашка:
+
 
 @router.message(Command('about'))
 async def about(message: Message):
@@ -107,6 +161,7 @@ async def about(message: Message):
         'Я бот-ассистент группы 71-1.\n' \
         'Я умею отвечать на комманды и реагировать на слова.'
     )
+
 
 
 @router.message(F.text.lower() == 'пока')

@@ -75,9 +75,27 @@ DELETE_USER = 'DELETE FROM users WHERE telegram_id = ?'    # удаляет за
 
 GET_ALL_QUESTIONS = 'SELECT * FROM questions'
 
+CREATE_QUESTION = 'INSERT INTO questions (question_text, correct_answer) VALUES (?, ?)'
+
 GET_QUESTION_BY_ID = 'SELECT FROM * questions WHERE id = ?'
 
+UPDATE_QUESTION = 'UPDATE questions SET question_text = ?'
 
-# -- Домашка --
+DELETE_QUESTION = 'DELETE FROM questions WHERE id = ?'
 
-INSERT_QUESTION = ''
+INSERT_QUESTION = 'INSERT INTO questions (question_text, correct_answer) VALUES (?, ?)'
+
+
+
+# -- RESULTS --
+
+INSERT_RESULT = 'INSERT INTO results (user_id, question_id, is_correct) VALUES (?, ?, ?)'
+
+GET_ALL_RESULTS = 'SELECT * FROM results'
+
+UPDATE_RESULT = 'UPDATE results SET is_correct = ? WHERE user_id = ? AND question_id = ?'
+
+DELETE_RESULTS = 'DELETE FROM results WHERE user_id = ? AND question_id = ?'
+
+GET_SCORE_BY_USER_ID = 'SELECT COUNT(*) as total, SUM(is_correct) as correct FROM results WHERE user_id = ?'
+

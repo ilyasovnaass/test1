@@ -99,3 +99,65 @@ DELETE_RESULTS = 'DELETE FROM results WHERE user_id = ? AND question_id = ?'
 
 GET_SCORE_BY_USER_ID = 'SELECT COUNT(*) as total, SUM(is_correct) as correct FROM results WHERE user_id = ?'
 
+
+
+# -- STATS --
+
+GET_HISTORY = '''
+    SELECT questions.question_text, results.is_correct
+    FROM results
+    INNER JOIN users 
+        ON users.id = results.user_id
+    INNER JOIN questions
+        ON questions.id = results.question_id
+    WHERE users.telegram_id = ?
+    ORDER BY results.id 
+    LIMIT 10
+'''
+
+
+GET_TOP = '''
+    SELECT u.username,
+        COUNT(*) AS total,
+        SUM(is_correct) AS correct
+    FROM results AS r
+    INNER JOIN users AS u
+        ON u.id = r.user_id
+    GROUP BY r.user_id
+    ORDER BY correct DESC
+    LIMIT 1
+'''
+
+
+
+GET_HARDEST = '''
+    SELECT q.question_text,
+            ROUND(AVG(r.is_correct)*100, 1) AS success_rate
+    FROM results AS r
+    INNER JOIN questions AS q 
+        ON q.id = r.question_id
+    GROUP BY r.question_id
+    ORDER BY success_rate ASC
+    LIMIT 1
+'''
+
+# Фильтрация, группировка (GROUP BY), HAVING 
+
+# AS -- 
+# ROUND() -- 
+# ORDER BY() -- 
+# enumerate() -- 
+
+# -- Агрегатные функции --
+
+# COUNT(*) --
+# SUM() --
+# AVG() --
+# MIN() --
+# MAX() --
+
+
+# GROUP BY() --
+
+# HAVING() --
+
